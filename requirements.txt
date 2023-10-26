@@ -1,0 +1,8 @@
+torch==2.0.1
+numpy==1.23.5
+matplotlib==3.5.3
+adabelief_pytorch==0.2.1
+pandas==1.3.5
+scikit-learn==1.3.0
+tensorboard
+mkl

@@ -124,7 +124,7 @@ class BCAB(nn.Module):
         y_ts = self.dropout_ts(self.activation_ts(self.conv1_ts(y_ts)))
         y_ts = self.dropout_ts(self.conv2_ts(y_ts))
         series_out = series_out + y_ts
-        series_out = series_raw
+        # series_out = series_raw
         
         series_out = self.layer_norm22(series_out)
 

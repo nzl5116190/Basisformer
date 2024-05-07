@@ -1,8 +1,10 @@
-export CUDA_VISIBLE_DEVICES=0
+start_gpu=0
+gpu_nums_per_iter=3
 
 for preLen in 96 192 336 720
 do
 
+export CUDA_VISIBLE_DEVICES=$((0 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/electricity \
@@ -12,9 +14,9 @@ python -u main.py \
   --seq_len 96 \
   --label_len 96 \
   --pred_len $preLen \
-  --learning_rate 5e-4
+  --learning_rate 5e-4 &
 
-
+export CUDA_VISIBLE_DEVICES=$((1 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/traffic \
@@ -24,9 +26,9 @@ python -u main.py \
   --seq_len 96 \
   --label_len 96 \
   --pred_len $preLen \
-  --learning_rate 5e-4
+  --learning_rate 5e-4 &
 
-
+export CUDA_VISIBLE_DEVICES=$((2 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/exchange_rate \
@@ -36,8 +38,9 @@ python -u main.py \
   --seq_len 96 \
   --label_len 96 \
   --pred_len $preLen \
-  --learning_rate 4e-4
+  --learning_rate 7e-4 &
 
+export CUDA_VISIBLE_DEVICES=$((3 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/ETT-small \
@@ -47,8 +50,9 @@ python -u main.py \
   --seq_len 96 \
   --label_len 96 \
   --pred_len $preLen \
-  --learning_rate 5e-4
+  --learning_rate 5e-4 &
 
+export CUDA_VISIBLE_DEVICES=$((4 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/weather \
@@ -58,11 +62,12 @@ python -u main.py \
   --seq_len 96 \
   --label_len 96 \
   --pred_len $preLen \
-  --learning_rate 5e-4
+  --learning_rate 5e-4 &
 done
 
 for preLen in 24 36 48 60
 do
+export CUDA_VISIBLE_DEVICES=$((5 * $gpu_nums_per_iter / 6+ $start_gpu))
 python -u main.py \
   --is_training True \
   --root_path all_six_datasets/illness \
@@ -72,6 +77,6 @@ python -u main.py \
   --seq_len 36 \
   --label_len 36 \
   --pred_len $preLen \
-  --learning_rate 6e-4
+  --learning_rate 6e-4 &
 done
 

@@ -27,7 +27,6 @@ We follow the same setting as previous work. The datasets for all the six benchm
 
 ```
 Basisformer\all_six_datasets
-│ .DS_Store
 │
 ├─electricity
 │
@@ -57,17 +56,19 @@ The length of the historical input sequence is maintained at $96$(or $36$ for th
 
 ### 1. Multivariate forecasting
 ```
-sh M.sh
+sh script/M.sh
 ```
 
 ### 2. Univariate forecasting
 ```
-sh S.sh
+sh script/S.sh
 ```
 
-### 3. (Optional) Training logs and Weight files
-Training logs and weight files can be obtained from [Baidu Netdisk](https://pan.baidu.com/s/1B-knbVJmgrMQKakd_4EvbQ)(with an extract code: clor) or [Google Drive](https://drive.google.com/file/d/1oh3b_yoFdkJS2KMn5Mv0AL93c2mMKVJK/view?usp=sharing)
+**Note:** 
+If you want to run multiple GPUs in parallel, you can replace `script/M.sh` and `script/S.sh` with `script/M_parallel.sh` and `script/S_parallel.sh`, respectively.
 
+### 3. (Optional) Training logs and Weight files
+Training logs and weight files can be obtained from [Baidu Netdisk](https://pan.baidu.com/s/1YTmg1GQmFGCFJYIQkQGpQg)(with an extract code: jqsr) or [Google Drive](https://drive.google.com/file/d/1W7eSq3mUAQHdk4-QsO4Hp63yPBeKKMd9/view?usp=sharing)
 
 ## Citation
 

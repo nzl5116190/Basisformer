@@ -9,7 +9,7 @@ import numpy as np
 from utils import Coefnet,MLP_bottle
 
 class Basisformer(nn.Module):
-    def __init__(self,seq_len,pred_len,d_model,heads,basis_nums,block_nums,bottle,map_bottleneck,device,tau):
+    def __init__(self,seq_len,pred_len,d_model,heads,basis_nums,block_nums,bottle,map_bottleneck,device,tau,is_MS=False,input_channel=0):
         super().__init__()
         self.d_model = d_model
         self.k = heads
@@ -43,6 +43,11 @@ class Basisformer(nn.Module):
         self.map_MLP = MLP_bottle(1,self.N*(self.seq_len+self.pred_len),map_bottleneck,bias=True)
         self.tau = tau
         self.epsilon = 1E-5
+        self.is_MS = is_MS
+        if is_MS:
+            self.MLP_MS = wn(nn.Linear(input_channel,1))
+            self.mean_MS = wn(nn.Linear(input_channel,1))
+            self.std_MS = wn(nn.Linear(input_channel,1))
         
     def forward(self,x,mark,y=None,train=True,y_mark=None):
         mean_x = x.mean(dim=1,keepdim=True)
@@ -60,11 +65,16 @@ class Basisformer(nn.Module):
         m1 = self.project2(raw_m1)    #(B,N,d)
         
         score,attn_x1,attn_x2 = self.coefnet(m1,feature)    #(B,k,C,N)
+        if self.is_MS:
+            score = self.MLP_MS(score.permute(0,1,3,2)).permute(0,1,3,2) # (B,k,1,N)
 
         base = self.MLP_y(raw_m2).reshape(B,self.N,self.k,-1).permute(0,2,1,3)   #(B,k,N,L/k)
-        out = torch.matmul(score,base).permute(0,2,1,3).reshape(B,C,-1)  #(B,C,k * (L/k))
-        out = self.MLP_sy(out).reshape(B,C,-1).permute(0,2,1)   #（BC,L）
+        out = torch.matmul(score,base).permute(0,2,1,3).reshape(B,score.shape[2],-1)  #(B,C,k * (L/k))
+        out = self.MLP_sy(out).reshape(B,score.shape[2],-1).permute(0,2,1)   #（BC,L）
         
+        if self.is_MS:
+            std_x = self.std_MS(std_x)
+            mean_x = self.mean_MS(mean_x)
         output = out * (std_x + self.epsilon) + mean_x
 
         #loss
@@ -89,7 +99,7 @@ class Basisformer(nn.Module):
             # l_pos = torch.bmm(logit_q.view(-1,1,self.k), logit_k.view(-1,self.k,1)).reshape(-1,1)  #(B*C*N,1,1)
             l_neg = torch.bmm(logit_q.reshape(-1,self.N,self.k), logit_k.reshape(-1,self.N,self.k).permute(0,2,1)).reshape(-1,self.N) # (B,C*N,N)
 
-            labels = torch.arange(0,self.N,1,dtype=torch.long).unsqueeze(0).repeat(B*C,1).reshape(-1)
+            labels = torch.arange(0,self.N,1,dtype=torch.long).unsqueeze(0).repeat(B*score.shape[2],1).reshape(-1)
 
             labels = labels.to(self.device)
 
@@ -104,8 +114,8 @@ class Basisformer(nn.Module):
             feature_y_raw = (y - mean_y) / (std_y + self.epsilon)
             
             feature_y = feature_y_raw.permute(0,2,1)
-            feature_y = self.project3(feature_y)   #(BC,d)
-            m2 = self.project4(raw_m2)    #(N,d)
+            feature_y = self.project3(feature_y)   #(B,C,d)
+            m2 = self.project4(raw_m2)    #(B,N,d)
             
             score_y,attn_y1,attn_y2 = self.coefnet(m2,feature_y)    #(B,k,C,N)
             return output,m,attn_x1,attn_x2,attn_y1,attn_y2      

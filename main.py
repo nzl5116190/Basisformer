@@ -291,6 +291,7 @@ if __name__ == "__main__":
     parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
     parser.add_argument('--label_len', type=int, default=96, help='start token length')
     parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
+    parser.add_argument('--input_channel', type=int, default=0, help='the number of channels in the input sequence')
     # parser.add_argument('--cross_activation', type=str default='tanh'
 
     # model define
@@ -339,7 +340,10 @@ if __name__ == "__main__":
 
     device = init_dl_program(args.device, seed=0,max_threads=8) if torch.cuda.is_available() else "cpu"
     # device = "cuda:{}".format(args.device) if torch.cuda.is_available() else "cpu"
-    model = Basisformer(args.seq_len,args.pred_len,args.d_model,args.heads,args.N,args.block_nums,args.bottleneck,args.map_bottleneck,device,args.tau)
+    is_MS = args.features == 'MS'
+    if is_MS and args.input_channel == 0:
+        raise ValueError("input_channel parameter cannot be set to 0 under MS prediction settings.")
+    model = Basisformer(args.seq_len,args.pred_len,args.d_model,args.heads,args.N,args.block_nums,args.bottleneck,args.map_bottleneck,device,args.tau,is_MS,args.input_channel)
 
     log_and_print(model)
     model.to(device)  ##
